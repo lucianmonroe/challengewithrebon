@@ -1,0 +1,195 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Interactive Mechanical Heart</title>
+    <style>
+        :root {
+            --bg: #0a0a0c;
+            --wire: #333;
+            --glow-red: #ff2e63;
+            --glow-blue: #08d9d6;
+            --text: #e0e0e0;
+        }
+
+        body {
+            background-color: var(--bg);
+            color: var(--text);
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+            margin: 0;
+            overflow: hidden;
+        }
+
+        .interface {
+            display: flex;
+            gap: 40px;
+            align-items: center;
+        }
+
+        #heart-svg {
+            width: 400px;
+            filter: drop-shadow(0 0 5px rgba(0,0,0,0.5));
+            cursor: crosshair;
+        }
+
+        /* The Pulse Animation */
+        .beating {
+            transform-origin: center;
+            animation: beat 1s infinite cubic-bezier(0.2, 0, 0.3, 1);
+        }
+
+        @keyframes beat {
+            0% { transform: scale(1); }
+            10% { transform: scale(1.08); }
+            20% { transform: scale(1); }
+            30% { transform: scale(1.05); }
+            100% { transform: scale(1); }
+        }
+
+        /* Path Styling */
+        .anatomy-part {
+            fill: #1a1a1e;
+            stroke: var(--wire);
+            stroke-width: 1.5;
+            transition: all 0.3s ease;
+        }
+
+        .anatomy-part:hover {
+            fill: #25252b;
+            stroke: var(--glow-red);
+            filter: drop-shadow(0 0 8px var(--glow-red));
+        }
+
+        /* Blood Flow Lines */
+        .flow-line {
+            fill: none;
+            stroke-width: 2;
+            stroke-dasharray: 10, 20;
+            stroke-linecap: round;
+            animation: flow 2s linear infinite;
+            pointer-events: none;
+            opacity: 0.6;
+        }
+
+        @keyframes flow {
+            from { stroke-dashoffset: 60; }
+            to { stroke-dashoffset: 0; }
+        }
+
+        /* UI Info Panel */
+        .info-panel {
+            width: 300px;
+            padding: 20px;
+            border-left: 1px solid #333;
+            background: rgba(255, 255, 255, 0.02);
+            border-radius: 0 15px 15px 0;
+        }
+
+        h2 { color: var(--glow-red); margin-top: 0; text-transform: uppercase; letter-spacing: 2px; }
+        p { line-height: 1.6; color: #aaa; }
+        .stat { font-family: monospace; color: var(--glow-blue); margin-top: 10px; }
+
+        .btn-group { margin-top: 20px; }
+        button {
+            background: transparent;
+            border: 1px solid var(--wire);
+            color: var(--text);
+            padding: 8px 15px;
+            cursor: pointer;
+            transition: 0.3s;
+        }
+        button:hover { border-color: var(--glow-blue); background: rgba(8, 217, 214, 0.1); }
+    </style>
+</head>
+<body>
+
+    <div class="interface">
+        <svg id="heart-svg" viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg">
+            <g class="beating">
+                <path id="vena-cava" class="anatomy-part" d="M140 30 L140 70 M150 20 L150 60" style="stroke: var(--glow-blue);" />
+                
+                <path id="right-atrium" class="anatomy-part" d="M110 70 C 140 70, 150 100, 130 130 L 100 120 Z" />
+                <path id="left-atrium" class="anatomy-part" d="M90 70 C 60 70, 50 100, 70 130 L 100 120 Z" />
+                <path id="right-ventricle" class="anatomy-part" d="M100 120 L 130 130 C 120 170, 100 180, 100 180 Z" />
+                <path id="left-ventricle" class="anatomy-part" d="M100 120 L 70 130 C 80 170, 100 180, 100 180 Z" />
+                
+                <path id="aorta" class="anatomy-part" d="M90 70 C 90 30, 130 20, 130 50" style="stroke: var(--glow-red); fill: none; stroke-width: 8;" />
+
+                <path class="flow-line" d="M145 30 L145 80" style="stroke: var(--glow-blue);" />
+                <path class="flow-line" d="M105 170 L115 130 L125 50" style="stroke: var(--glow-red); animation-delay: 0.5s;" />
+            </g>
+        </svg>
+
+        <div class="info-panel">
+            <h2 id="part-name">Cardiac Core</h2>
+            <p id="part-desc">Hover over the anatomical components to initialize bio-mechanical scan.</p>
+            <div class="stat">Status: <span id="status">Active</span></div>
+            <div class="stat">BPM: <span id="bpm">72</span></div>
+            
+            <div class="btn-group">
+                <button onclick="changeHeartRate(1.5)">Tachycardia</button>
+                <button onclick="changeHeartRate(1)">Normal</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const heartData = {
+            'right-atrium': {
+                name: "Right Atrium",
+                desc: "Receives deoxygenated blood from the body via the vena cava. Pressure: Low."
+            },
+            'left-atrium': {
+                name: "Left Atrium",
+                desc: "Receives oxygen-rich blood from the lungs. The gateway to systemic circulation."
+            },
+            'right-ventricle': {
+                name: "Right Ventricle",
+                desc: "Pumps deoxygenated blood to the lungs through the pulmonary artery."
+            },
+            'left-ventricle': {
+                name: "Left Ventricle",
+                desc: "The strongest chamber. Pumps oxygenated blood to the entire body via the Aorta."
+            },
+            'aorta': {
+                name: "Aorta",
+                desc: "The primary mechanical conduit for oxygenated blood distribution."
+            },
+            'vena-cava': {
+                name: "Vena Cava",
+                desc: "The main intake line for deoxygenated blood returning to the core."
+            }
+        };
+
+        // Hover Logic
+        document.querySelectorAll('.anatomy-part').forEach(part => {
+            part.addEventListener('mouseenter', () => {
+                const info = heartData[part.id];
+                if (info) {
+                    document.getElementById('part-name').innerText = info.name;
+                    document.getElementById('part-desc').innerText = info.desc;
+                    document.getElementById('status').innerText = "Analyzing...";
+                }
+            });
+
+            part.addEventListener('mouseleave', () => {
+                document.getElementById('status').innerText = "Active";
+            });
+        });
+
+        // Speed Logic
+        function changeHeartRate(speed) {
+            const heart = document.querySelector('.beating');
+            const bpmDisplay = document.getElementById('bpm');
+            
+            heart.style.animationDuration = `${1 / speed}s`;
+            bpmDisplay.innerText = Math.round(72 * speed);
+        }
+    </script>
+</body>
+</html>
