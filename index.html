@@ -1,195 +1,1435 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" data-theme="light">
 <head>
-    <meta charset="UTF-8">
-    <title>Interactive Mechanical Heart</title>
-    <style>
-        :root {
-            --bg: #0a0a0c;
-            --wire: #333;
-            --glow-red: #fe3769;
-            --glow-blue: #08d9d6;
-            --text: #e0e0e0;
-        }
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Bio-Mechanical Cardiac Core — Anatomical Analysis</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=EB+Garamond:ital,wght@0,400;0,500;0,600;1,400;1,500&family=JetBrains+Mono:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+/* ══ THEME TOKENS ══ */
+:root {
+  --bg:           #F5F4EF;
+  --surface:      #FFFFFF;
+  --surface-alt:  #F0EEE8;
+  --border:       #D8D5CC;
+  --border-light: #E8E5DE;
+  --text-primary: #1A1914;
+  --text-sub:     #4A4840;
+  --text-muted:   #8A877E;
+  --crimson:      #A51C30;
+  --crimson-dim:  rgba(165,28,48,0.08);
+  --blue:         #1B4F8A;
+  --blue-dim:     rgba(27,79,138,0.08);
+  --amber:        #B5820A;
+  --glow:         rgba(165,28,48,0.08);
+  --shadow:       0 2px 16px rgba(0,0,0,0.06);
+  --shadow-lg:    0 8px 40px rgba(0,0,0,0.08);
+  --chamber-fill:          rgba(240,238,232,0.9);
+  --chamber-stroke:        #C8C5BC;
+  --chamber-hover-fill:    rgba(165,28,48,0.08);
+  --chamber-hover-stroke:  #A51C30;
+  --chamber-active-fill:   rgba(165,28,48,0.14);
+  --chamber-deoxy-hover:   rgba(27,79,138,0.08);
+  --chamber-deoxy-stroke:  #1B4F8A;
+  --chamber-deoxy-active:  rgba(27,79,138,0.14);
+}
+[data-theme="dark"] {
+  --bg:           #1E1E26;
+  --surface:      #26262F;
+  --surface-alt:  #2E2E3A;
+  --border:       rgba(255,255,255,0.11);
+  --border-light: rgba(255,255,255,0.07);
+  --text-primary: #E8E6E2;
+  --text-sub:     #B0ADA8;
+  --text-muted:   #7A7772;
+  --crimson:      #E8425A;
+  --crimson-dim:  rgba(232,66,90,0.12);
+  --blue:         #4ABBE8;
+  --blue-dim:     rgba(74,187,232,0.10);
+  --amber:        #E8B445;
+  --glow:         rgba(232,66,90,0.12);
+  --shadow:       0 2px 16px rgba(0,0,0,0.22);
+  --shadow-lg:    0 8px 40px rgba(0,0,0,0.28);
+  --chamber-fill:          rgba(52,52,68,0.85);
+  --chamber-stroke:        #52526A;
+  --chamber-hover-fill:    rgba(232,66,90,0.12);
+  --chamber-hover-stroke:  #E8425A;
+  --chamber-active-fill:   rgba(232,66,90,0.22);
+  --chamber-deoxy-hover:   rgba(74,187,232,0.10);
+  --chamber-deoxy-stroke:  #4ABBE8;
+  --chamber-deoxy-active:  rgba(74,187,232,0.18);
+}
 
-        body {
-            background-color: var(--bg);
-            color: var(--text);
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            height: 100vh;
-            margin: 0;
-            overflow: hidden;
-        }
+/* ══ BASE ══ */
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+html{font-size:16px;}
+body{
+  background:var(--bg);color:var(--text-primary);
+  font-family:'EB Garamond',Georgia,serif;
+  min-height:100vh;display:flex;flex-direction:column;
+  transition:background .35s ease,color .35s ease;
+}
 
-        .interface {
-            display: flex;
-            gap: 40px;
-            align-items: center;
-        }
+/* ══ HEADER ══ */
+header{
+  background:var(--surface);border-bottom:1px solid var(--border);
+  box-shadow:var(--shadow);transition:background .35s ease,border-color .35s ease;
+}
+.header-inner{
+  max-width:1200px;margin:0 auto;padding:28px 40px 24px;
+  display:flex;align-items:flex-end;justify-content:space-between;gap:20px;
+}
+.dept-label{
+  font-family:'JetBrains Mono',monospace;font-size:.68rem;
+  letter-spacing:.22em;text-transform:uppercase;color:var(--crimson);
+  margin-bottom:8px;font-weight:400;
+}
+h1{font-size:1.85rem;font-weight:500;letter-spacing:-.01em;color:var(--text-primary);line-height:1.15;}
+h1 em{font-style:italic;color:var(--text-sub);font-weight:400;}
+.header-meta{font-size:.85rem;color:var(--text-muted);margin-top:5px;font-style:italic;}
+.theme-toggle{
+  display:flex;align-items:center;gap:10px;cursor:pointer;
+  padding:8px 16px;border:1px solid var(--border);border-radius:2px;
+  background:transparent;transition:all .2s;flex-shrink:0;
+  color:var(--text-muted);font-family:'JetBrains Mono',monospace;
+  font-size:.65rem;letter-spacing:.1em;text-transform:uppercase;
+}
+.theme-toggle:hover{border-color:var(--crimson);color:var(--crimson);}
+.toggle-icon{width:16px;height:16px;display:flex;align-items:center;justify-content:center;}
 
-        #heart-svg {
-            width: 400px;
-            filter: drop-shadow(0 0 5px rgba(0,0,0,0.5));
-            cursor: crosshair;
-        }
+/* ══ MAIN LAYOUT — left panel | stage | right panel ══ */
+.main-content{
+  flex:1;max-width:1300px;margin:0 auto;width:100%;
+  display:flex;align-items:flex-start;gap:0;padding:40px 32px 60px;
+}
 
-        /* The Pulse Animation */
-        .beating {
-            transform-origin: center;
-            animation: beat 1s infinite cubic-bezier(0.2, 0, 0.3, 1);
-        }
+/* Left stats panel */
+.left-panel {
+  flex:0 0 280px;
+  order:0;
+}
 
-        @keyframes beat {
-            0% { transform: scale(1); }
-            10% { transform: scale(1.08); }
-            20% { transform: scale(1); }
-            30% { transform: scale(1.05); }
-            100% { transform: scale(1); }
-        }
+/* Right desc panel */
+.right-panel {
+  flex:0 0 300px;
+  order:2;
+}
 
-        /* Path Styling */
-        .anatomy-part {
-            fill: #1a1a1e;
-            stroke: var(--wire);
-            stroke-width: 1.5;
-            transition: all 0.3s ease;
-        }
+/* Stage (centre) */
+.stage{
+  flex:1;order:1;display:flex;flex-direction:column;
+  align-items:center;justify-content:center;
+  min-height:480px;position:relative;
+}
+#onboard-hint{
+  position:absolute;bottom:0;left:50%;transform:translateX(-50%);
+  font-family:'JetBrains Mono',monospace;font-size:.62rem;
+  letter-spacing:.18em;text-transform:uppercase;color:var(--text-muted);
+  opacity:1;transition:opacity 1s ease;animation:hintPulse 3s ease-in-out infinite;
+  pointer-events:none;white-space:nowrap;
+}
+@keyframes hintPulse{0%,100%{opacity:.4}55%{opacity:.9}}
+#onboard-hint.fade{opacity:0;}
 
-        .anatomy-part:hover {
-            fill: #25252b;
-            stroke: var(--glow-red);
-            filter: drop-shadow(0 0 8px var(--glow-red));
-        }
+#heart-shell{
+  width:min(440px,92vw);touch-action:manipulation;
+  filter:drop-shadow(0 8px 32px var(--glow));transition:filter .3s ease;
+}
 
-        /* Blood Flow Lines */
-        .flow-line {
-            fill: none;
-            stroke-width: 2;
-            stroke-dasharray: 10, 20;
-            stroke-linecap: round;
-            animation: flow 2s linear infinite;
-            pointer-events: none;
-            opacity: 0.6;
-        }
+/* ── Chamber SVG ── */
+.chamber{cursor:pointer;}
+.chamber-fill{
+  fill:var(--chamber-fill);stroke:var(--chamber-stroke);stroke-width:1.5;
+  transition:fill .25s ease,stroke .25s ease,filter .25s ease;
+}
+.chamber-shine{fill:none;stroke:rgba(255,255,255,.06);stroke-width:.7;pointer-events:none;}
+.chamber:hover .chamber-fill,.chamber:focus .chamber-fill{
+  fill:var(--chamber-hover-fill);stroke:var(--chamber-hover-stroke);stroke-width:2;
+}
+.chamber.active .chamber-fill{
+  fill:var(--chamber-active-fill);stroke:var(--chamber-hover-stroke);stroke-width:2.2;
+}
+.chamber:focus{outline:none;}
+.chamber:focus-visible .chamber-fill{stroke:var(--amber);stroke-width:2.2;}
+.deoxy-side.chamber:hover .chamber-fill,.deoxy-side.chamber:focus .chamber-fill{
+  fill:var(--chamber-deoxy-hover);stroke:var(--chamber-deoxy-stroke);
+}
+.deoxy-side.chamber.active .chamber-fill{
+  fill:var(--chamber-deoxy-active);stroke:var(--chamber-deoxy-stroke);
+}
+.aorta-main{
+  fill:none;stroke:var(--chamber-stroke);stroke-width:10;
+  stroke-linecap:round;transition:stroke .25s ease;
+}
+.aorta-shine{fill:none;stroke:rgba(255,255,255,.06);stroke-width:5;stroke-linecap:round;pointer-events:none;}
+#aorta:hover .aorta-main,#aorta:focus .aorta-main{stroke:var(--chamber-hover-stroke);}
+#aorta.active .aorta-main{stroke:var(--chamber-hover-stroke);}
 
-        @keyframes flow {
-            from { stroke-dashoffset: 60; }
-            to { stroke-dashoffset: 0; }
-        }
+/* ── Info panel — shared base for both side panels ── */
+.info-panel{
+  background:var(--surface);
+  border:1px solid var(--border);
+  padding:28px;
+  display:flex;flex-direction:column;gap:0;
+  box-shadow:var(--shadow-lg);
+  transition:background .35s ease,border-color .35s ease;
+  align-self:stretch;
+}
+.panel-section{
+  padding:20px 0;border-bottom:1px solid var(--border-light);
+}
+.panel-section:first-child{padding-top:0;}
+.panel-section:last-child{border-bottom:none;padding-bottom:0;}
 
-        /* UI Info Panel */
-        .info-panel {
-            width: 300px;
-            padding: 20px;
-            border-left: 1px solid #333;
-            background: rgba(255, 255, 255, 0.02);
-            border-radius: 0 15px 15px 0;
-        }
+.chamber-name{
+  font-size:1.55rem;font-weight:500;color:var(--crimson);
+  letter-spacing:-.01em;line-height:1.15;margin-bottom:3px;
+}
+.chamber-role{
+  font-family:'JetBrains Mono',monospace;font-size:.62rem;
+  letter-spacing:.15em;text-transform:uppercase;
+  color:var(--text-muted);margin-bottom:14px;
+}
+.desc-tabs{
+  display:flex;gap:0;margin-bottom:14px;border-bottom:1px solid var(--border);
+}
+.desc-tab{
+  font-family:'JetBrains Mono',monospace;font-size:.6rem;letter-spacing:.12em;
+  text-transform:uppercase;color:var(--text-muted);
+  padding:6px 14px 9px;cursor:pointer;border:none;background:none;
+  border-bottom:2px solid transparent;margin-bottom:-1px;transition:all .15s;
+}
+.desc-tab.active{color:var(--crimson);border-bottom-color:var(--crimson);}
+.desc-tab:hover:not(.active){color:var(--text-sub);}
+.desc-text{font-size:.97rem;line-height:1.75;color:var(--text-sub);min-height:100px;transition:opacity .2s;}
+.desc-box.flash{animation:panelFlash .3s ease;}
+@keyframes panelFlash{0%{background:var(--crimson-dim)}100%{background:transparent}}
 
-        h2 { color: var(--glow-red); margin-top: 0; text-transform: uppercase; letter-spacing: 2px; }
-        p { line-height: 1.6; color: #aaa; }
-        .stat { font-family: monospace; color: var(--glow-blue); margin-top: 10px; }
+/* Stat box — 4 rows only, no STATUS */
+.stat-box{
+  font-family:'JetBrains Mono',monospace;
+  background:var(--surface-alt);
+  border:1px solid var(--border-light);
+  padding:14px 16px;
+}
+.stat-row-item{
+  display:flex;justify-content:space-between;align-items:center;
+  padding:4px 0;border-bottom:1px solid var(--border-light);font-size:.78rem;
+}
+.stat-row-item:last-child{border-bottom:none;}
+.stat-key{color:var(--text-muted);}
+.stat-val{color:var(--blue);}
+.stat-val.warn{color:var(--amber);}
 
-        .btn-group { margin-top: 20px; }
-        button {
-            background: transparent;
-            border: 1px solid var(--wire);
-            color: var(--text);
-            padding: 8px 15px;
-            cursor: pointer;
-            transition: 0.3s;
-        }
-        button:hover { border-color: var(--glow-blue); background: rgba(8, 217, 214, 0.1); }
-    </style>
+.ctrl-label{
+  font-family:'JetBrains Mono',monospace;font-size:.6rem;
+  letter-spacing:.15em;text-transform:uppercase;color:var(--text-muted);margin-bottom:10px;
+}
+.btn-row{display:flex;gap:8px;margin-bottom:10px;}
+.btn{
+  flex:1;padding:9px 6px;background:transparent;
+  border:1px solid var(--border);color:var(--text-sub);
+  font-family:'JetBrains Mono',monospace;font-size:.62rem;
+  letter-spacing:.1em;text-transform:uppercase;cursor:pointer;
+  transition:all .15s;text-align:center;
+}
+.btn:hover{border-color:var(--crimson);color:var(--crimson);background:var(--crimson-dim);}
+.btn.active{border-color:var(--crimson);color:var(--crimson);background:var(--crimson-dim);}
+.btn.flow-active{border-color:var(--blue);color:var(--blue);background:var(--blue-dim);}
+
+.preset-select{
+  width:100%;background:var(--surface-alt);border:1px solid var(--border);
+  color:var(--text-primary);font-family:'JetBrains Mono',monospace;
+  font-size:.68rem;letter-spacing:.05em;padding:10px 12px;
+  appearance:none;cursor:pointer;transition:border-color .15s;
+}
+.preset-select:focus{outline:none;border-color:var(--crimson);}
+
+/* Flow progress */
+.flow-progress{
+  display:none;gap:5px;align-items:center;
+  margin-top:12px;padding:10px 12px;
+  background:var(--surface-alt);border:1px solid var(--border-light);
+}
+.flow-progress.visible{display:flex;}
+.flow-dot{width:6px;height:6px;border-radius:50%;background:var(--border);transition:all .3s;flex-shrink:0;}
+.flow-dot.done{background:var(--blue);}
+.flow-dot.current{background:var(--crimson);transform:scale(1.5);}
+.flow-step-text{
+  font-family:'JetBrains Mono',monospace;font-size:.55rem;
+  letter-spacing:.08em;color:var(--text-muted);margin-left:4px;
+}
+
+/* Slider */
+.slider-row{display:flex;align-items:center;gap:12px;margin-top:12px;}
+.slider-label{
+  font-family:'JetBrains Mono',monospace;font-size:.62rem;
+  letter-spacing:.1em;text-transform:uppercase;color:var(--text-muted);
+  white-space:nowrap;flex-shrink:0;
+}
+.slider-val{
+  font-family:'JetBrains Mono',monospace;font-size:.72rem;
+  color:var(--blue);min-width:28px;text-align:right;flex-shrink:0;
+}
+input[type=range]{
+  flex:1;height:4px;background:var(--border);border-radius:2px;
+  appearance:none;cursor:pointer;
+}
+input[type=range]::-webkit-slider-thumb{
+  appearance:none;width:14px;height:14px;background:var(--crimson);
+  border-radius:50%;cursor:pointer;
+}
+
+/* Audio btn — two-state toggle */
+.audio-btn{
+  width:100%;margin-top:12px;padding:10px;background:transparent;
+  border:1px solid var(--border);color:var(--text-muted);
+  font-family:'JetBrains Mono',monospace;font-size:.62rem;
+  letter-spacing:.1em;text-transform:uppercase;cursor:pointer;transition:all .15s;
+}
+.audio-btn:hover{border-color:var(--blue);color:var(--blue);background:var(--blue-dim);}
+.audio-btn.on{border-color:var(--blue);color:var(--blue);background:var(--blue-dim);}
+
+/* ECG */
+#ecg-canvas{
+  display:block;width:100%;height:52px;
+  background:var(--surface-alt);border:1px solid var(--border-light);
+}
+
+/* Reduce motion row */
+.reduce-row{display:flex;align-items:center;gap:8px;margin-top:10px;cursor:pointer;}
+.reduce-row input{accent-color:var(--crimson);cursor:pointer;}
+.reduce-row span{
+  font-family:'JetBrains Mono',monospace;font-size:.6rem;
+  letter-spacing:.1em;text-transform:uppercase;color:var(--text-muted);
+}
+
+/* Fact ticker */
+.fact-box{margin-top:auto;padding-top:20px;}
+.fact-label{
+  font-family:'JetBrains Mono',monospace;font-size:.58rem;
+  letter-spacing:.18em;text-transform:uppercase;color:var(--amber);margin-bottom:7px;
+}
+.fact-text{
+  font-size:.87rem;font-style:italic;line-height:1.6;
+  color:var(--text-muted);transition:opacity .4s;
+}
+.fact-text.fade-out{opacity:0;}
+
+/* ══ FOOTER ══ */
+footer{
+  background:var(--surface);border-top:1px solid var(--border);
+  padding:14px 40px;display:flex;align-items:center;
+  justify-content:space-between;transition:background .35s ease,border-color .35s ease;
+}
+.footer-text{font-family:'JetBrains Mono',monospace;font-size:.6rem;letter-spacing:.12em;color:var(--text-muted);text-transform:uppercase;}
+.status-pill{font-family:'JetBrains Mono',monospace;font-size:.6rem;letter-spacing:.12em;text-transform:uppercase;display:flex;align-items:center;gap:6px;}
+.status-dot{width:6px;height:6px;border-radius:50%;animation:blink 2s step-end infinite;}
+.status-dot.ok{background:#3A8C4A;}.status-pill.ok{color:#3A8C4A;}
+.status-dot.alert{background:var(--amber);}.status-pill.alert{color:var(--amber);}
+@keyframes blink{0%,100%{opacity:1}50%{opacity:.3}}
+
+/* ══════════════════════════════════════════════
+   TUTORIAL OVERLAY
+══════════════════════════════════════════════ */
+#tutorial-overlay{
+  position:fixed;inset:0;z-index:9999;
+  display:flex;align-items:center;justify-content:center;
+  background:rgba(0,0,0,.62);
+  backdrop-filter:blur(4px);
+  -webkit-backdrop-filter:blur(4px);
+  transition:opacity .35s ease, background .35s ease, backdrop-filter .35s ease;
+}
+/* Steps 1+: no overlay, card anchored bottom-right */
+#tutorial-overlay.mini-mode{
+  background:transparent;
+  backdrop-filter:none;
+  -webkit-backdrop-filter:none;
+  pointer-events:none;
+  align-items:flex-end;
+  justify-content:flex-end;
+  padding:0 28px 28px 0;
+}
+#tutorial-overlay.hidden{opacity:0;pointer-events:none;}
+
+/* ── Full-size card (step 0) ── */
+.tut-card{
+  background:var(--surface);border:1px solid var(--border);
+  max-width:520px;width:90%;
+  box-shadow:0 24px 80px rgba(0,0,0,.35);
+  position:relative;
+  animation:tutSlideIn .4s cubic-bezier(.22,1,.36,1);
+  transition:all .35s cubic-bezier(.22,1,.36,1);
+  pointer-events:all;
+}
+@keyframes tutSlideIn{from{opacity:0;transform:translateY(20px)}to{opacity:1;transform:translateY(0)}}
+
+/* ── Mini card (steps 1–4) — compact corner chip ── */
+.tut-card.mini{
+  max-width:300px;
+  width:300px;
+  box-shadow:0 8px 32px rgba(0,0,0,.28);
+  animation:tutMiniIn .3s cubic-bezier(.22,1,.36,1);
+}
+@keyframes tutMiniIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
+
+.tut-header{
+  padding:20px 32px 16px;
+  border-bottom:1px solid var(--border-light);
+}
+.tut-card.mini .tut-header{padding:12px 16px 10px;}
+
+.tut-dept{
+  font-family:'JetBrains Mono',monospace;font-size:.6rem;
+  letter-spacing:.2em;text-transform:uppercase;color:var(--crimson);margin-bottom:8px;
+}
+.tut-title{font-size:1.5rem;font-weight:500;color:var(--text-primary);line-height:1.2;}
+.tut-title em{font-style:italic;color:var(--text-sub);font-weight:400;}
+
+.tut-body{padding:20px 32px;}
+.tut-card.mini .tut-body{padding:12px 16px;}
+
+/* Step indicator pills */
+.tut-steps{display:flex;gap:5px;margin-bottom:0;}
+.tut-step-pip{
+  height:3px;border-radius:2px;flex:1;
+  background:var(--border);transition:background .3s;
+}
+.tut-step-pip.done{background:var(--crimson);}
+.tut-step-pip.active{background:var(--crimson);opacity:.5;}
+
+/* Step content */
+.tut-step{display:none;}
+.tut-step.visible{display:block;}
+
+.tut-icon{
+  width:40px;height:40px;border-radius:2px;
+  background:var(--crimson-dim);border:1px solid rgba(165,28,48,.2);
+  display:flex;align-items:center;justify-content:center;
+  margin-bottom:12px;
+}
+[data-theme="dark"] .tut-icon{background:rgba(232,66,90,.1);border-color:rgba(232,66,90,.2);}
+.tut-icon svg{width:20px;height:20px;stroke:var(--crimson);}
+.tut-card.mini .tut-icon{display:none;}  /* hide icon in mini mode — saves space */
+
+.tut-step-title{font-size:1.05rem;font-weight:500;color:var(--text-primary);margin-bottom:7px;}
+.tut-card.mini .tut-step-title{font-size:.9rem;margin-bottom:5px;}
+.tut-step-body{font-size:.95rem;line-height:1.72;color:var(--text-sub);}
+.tut-card.mini .tut-step-body{font-size:.8rem;line-height:1.6;}
+
+/* Highlight badge inside steps */
+.tut-badge{
+  display:inline-block;font-family:'JetBrains Mono',monospace;
+  font-size:.6rem;letter-spacing:.1em;text-transform:uppercase;
+  padding:2px 7px;background:var(--blue-dim);
+  border:1px solid rgba(27,79,138,.25);color:var(--blue);
+  vertical-align:middle;margin:0 2px;
+}
+[data-theme="dark"] .tut-badge{background:rgba(74,187,232,.1);border-color:rgba(74,187,232,.25);}
+
+.tut-footer{
+  padding:14px 32px 24px;
+  display:flex;align-items:center;justify-content:space-between;
+}
+.tut-card.mini .tut-footer{padding:8px 16px 14px;}
+.tut-nav{display:flex;gap:8px;}
+.tut-btn{
+  padding:8px 18px;border:1px solid var(--border);
+  background:transparent;color:var(--text-muted);
+  font-family:'JetBrains Mono',monospace;font-size:.62rem;
+  letter-spacing:.1em;text-transform:uppercase;cursor:pointer;transition:all .15s;
+}
+.tut-card.mini .tut-btn{padding:7px 14px;font-size:.58rem;}
+.tut-btn:hover{border-color:var(--crimson);color:var(--crimson);}
+.tut-btn-primary{
+  background:var(--crimson);border-color:var(--crimson);
+  color:#fff;
+}
+.tut-btn-primary:hover{background:var(--crimson);opacity:.88;color:#fff;}
+.tut-counter{
+  font-family:'JetBrains Mono',monospace;font-size:.6rem;
+  letter-spacing:.12em;color:var(--text-muted);text-transform:uppercase;
+}
+
+/* Spotlight ring for tutorial targets */
+.tut-spotlight{
+  position:fixed;z-index:9998;
+  border:2px solid var(--crimson);
+  border-radius:4px;
+  box-shadow:0 0 0 4px rgba(165,28,48,.15);
+  transition:all .5s cubic-bezier(.4,0,.2,1);
+  pointer-events:none;
+  animation:spotPulse 2s ease-in-out infinite;
+}
+@keyframes spotPulse{
+  0%,100%{box-shadow:0 0 0 4px rgba(165,28,48,.15);}
+  50%{box-shadow:0 0 0 7px rgba(165,28,48,.28);}
+}
+[data-theme="dark"] .tut-spotlight{
+  border-color:#E8425A;
+  animation:spotPulseDark 2s ease-in-out infinite;
+}
+@keyframes spotPulseDark{
+  0%,100%{box-shadow:0 0 0 4px rgba(232,66,90,.18);}
+  50%{box-shadow:0 0 0 7px rgba(232,66,90,.32);}
+}
+
+/* ══ BPM INPUT (inside SVG foreignObject) ══ */
+#svg-bpm-input::-webkit-outer-spin-button,
+#svg-bpm-input::-webkit-inner-spin-button { -webkit-appearance:none; margin:0; }
+#svg-bpm-input { -moz-appearance:textfield; line-height:22px; }
+[data-theme="dark"] #svg-bpm-input { color:#E8425A !important; }
+
+/* ══ TOAST NOTIFICATION ══ */
+#bpm-toast {
+  position:fixed;bottom:32px;left:50%;transform:translateX(-50%) translateY(16px);
+  background:var(--surface);border:1px solid var(--crimson);
+  color:var(--crimson);font-family:'JetBrains Mono',monospace;
+  font-size:.72rem;letter-spacing:.06em;padding:10px 20px;
+  box-shadow:0 8px 24px rgba(0,0,0,.18);
+  opacity:0;pointer-events:none;
+  transition:opacity .25s ease, transform .25s ease;
+  z-index:99999;white-space:nowrap;
+}
+#bpm-toast.show {
+  opacity:1;transform:translateX(-50%) translateY(0);
+}
+@media(max-width:1000px){
+  .main-content{flex-direction:column;padding:24px 20px 40px;gap:0;}
+  .left-panel,.right-panel{flex:none;width:100%;order:unset;}
+  .info-panel{flex:none;width:100%;}
+  .stage{min-height:360px;order:unset;}
+  .header-inner{padding:20px 20px 18px;}
+  h1{font-size:1.4rem;}
+  footer{padding:12px 20px;}
+}
+@media(prefers-reduced-motion:reduce){
+  #main-structure *{animation:none!important;transition:color .15s,fill .15s,stroke .15s!important;}
+  .blood-particle{display:none!important;}
+  #onboard-hint{animation:none;}
+  .tut-card{animation:none;}
+  .tut-spotlight{transition:none;}
+}
+</style>
 </head>
 <body>
 
-    <div class="interface">
-        <svg id="heart-svg" viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg">
-            <g class="beating">
-                <path id="vena-cava" class="anatomy-part" d="M140 30 L140 70 M150 20 L150 60" style="stroke: var(--glow-blue);" />
-                
-                <path id="right-atrium" class="anatomy-part" d="M110 70 C 140 70, 150 100, 130 130 L 100 120 Z" />
-                <path id="left-atrium" class="anatomy-part" d="M90 70 C 60 70, 50 100, 70 130 L 100 120 Z" />
-                <path id="right-ventricle" class="anatomy-part" d="M100 120 L 130 130 C 120 170, 100 180, 100 180 Z" />
-                <path id="left-ventricle" class="anatomy-part" d="M100 120 L 70 130 C 80 170, 100 180, 100 180 Z" />
-                
-                <path id="aorta" class="anatomy-part" d="M90 70 C 90 30, 130 20, 130 50" style="stroke: var(--glow-red); fill: none; stroke-width: 8;" />
+<!-- ══ TUTORIAL SPOTLIGHT (behind overlay) ══ -->
+<div class="tut-spotlight" id="tut-spotlight" style="display:none"></div>
 
-                <path class="flow-line" d="M145 30 L145 80" style="stroke: var(--glow-blue);" />
-                <path class="flow-line" d="M105 170 L115 130 L125 50" style="stroke: var(--glow-red); animation-delay: 0.5s;" />
-            </g>
-        </svg>
+<!-- ══ TUTORIAL OVERLAY ══ -->
+<div id="tutorial-overlay" role="dialog" aria-modal="true" aria-label="Welcome tutorial">
+  <div class="tut-card">
+    <div class="tut-header" style="padding:20px 32px 16px;">
+      <div class="tut-steps" id="tut-steps"></div>
+    </div>
+    <div class="tut-body">
 
-        <div class="info-panel">
-            <h2 id="part-name">Cardiac Core</h2>
-            <p id="part-desc">Hover over the anatomical components to initialize bio-mechanical scan.</p>
-            <div class="stat">Status: <span id="status">Active</span></div>
-            <div class="stat">BPM: <span id="bpm">72</span></div>
-            
-            <div class="btn-group">
-                <button onclick="changeHeartRate(1.5)">Tachycardia</button>
-                <button onclick="changeHeartRate(1)">Normal</button>
-            </div>
+      <!-- Step 0: Welcome cover -->
+      <div class="tut-step visible" id="tut-step-0">
+        <!-- Heart icon -->
+        <div style="display:flex;align-items:center;gap:14px;margin-bottom:18px;">
+          <div class="tut-icon" style="margin-bottom:0;flex-shrink:0;">
+            <svg fill="none" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24">
+              <path d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"/>
+            </svg>
+          </div>
+          <div>
+            <div style="font-family:'JetBrains Mono',monospace;font-size:.58rem;letter-spacing:.2em;text-transform:uppercase;color:var(--crimson);margin-bottom:4px;">Department of Anatomy &amp; Physiology</div>
+            <div style="font-size:1.3rem;font-weight:500;color:var(--text-primary);line-height:1.2;">Welcome to the <em style="font-style:italic;color:var(--text-sub);font-weight:400;">Cardiac Core</em></div>
+          </div>
         </div>
+
+        <div style="border-top:1px solid var(--border-light);padding-top:16px;margin-bottom:20px;">
+          <div style="font-size:1rem;font-weight:500;color:var(--text-primary);margin-bottom:8px;letter-spacing:.01em;">Interactive anatomical reference</div>
+          <div class="tut-step-body">This tool lets you explore the human heart in real time — its chambers, vessels, blood flow, and vital data. This quick tour covers everything in under a minute.</div>
+        </div>
+
+        <!-- Theme picker -->
+        <div style="border:1px solid var(--border);padding:16px 18px;">
+          <div style="font-family:'JetBrains Mono',monospace;font-size:.6rem;letter-spacing:.18em;text-transform:uppercase;color:var(--text-muted);margin-bottom:12px;">Choose your appearance</div>
+          <div style="display:flex;gap:10px;">
+            <!-- Light option -->
+            <button id="tut-theme-light" onclick="setTutTheme('light')" style="flex:1;padding:12px 8px;border:1px solid var(--border);background:transparent;cursor:pointer;transition:all .15s;display:flex;flex-direction:column;align-items:center;gap:7px;">
+              <!-- Light preview swatch -->
+              <div style="width:40px;height:28px;border-radius:2px;background:#F5F4EF;border:1px solid #D8D5CC;display:flex;align-items:center;justify-content:center;gap:4px;">
+                <div style="width:10px;height:10px;border-radius:50%;background:#A51C30;"></div>
+                <div style="width:14px;height:4px;background:#C8C5BC;border-radius:1px;"></div>
+              </div>
+              <span style="font-family:'JetBrains Mono',monospace;font-size:.6rem;letter-spacing:.08em;text-transform:uppercase;color:var(--text-muted);">Light</span>
+            </button>
+            <!-- Dark option -->
+            <button id="tut-theme-dark" onclick="setTutTheme('dark')" style="flex:1;padding:12px 8px;border:1px solid var(--border);background:transparent;cursor:pointer;transition:all .15s;display:flex;flex-direction:column;align-items:center;gap:7px;">
+              <!-- Dark preview swatch -->
+              <div style="width:40px;height:28px;border-radius:2px;background:#0B0B0E;border:1px solid #2a2a35;display:flex;align-items:center;justify-content:center;gap:4px;">
+                <div style="width:10px;height:10px;border-radius:50%;background:#FF3655;"></div>
+                <div style="width:14px;height:4px;background:#3A3A4A;border-radius:1px;"></div>
+              </div>
+              <span style="font-family:'JetBrains Mono',monospace;font-size:.6rem;letter-spacing:.08em;text-transform:uppercase;color:var(--text-muted);">Dark</span>
+            </button>
+          </div>
+          <div style="font-family:'JetBrains Mono',monospace;font-size:.58rem;letter-spacing:.08em;color:var(--text-muted);text-align:center;margin-top:10px;opacity:.7;">You can change this anytime from the header</div>
+        </div>
+      </div>
+
+      <!-- Step 1: Click chambers -->
+      <div class="tut-step" id="tut-step-1">
+        <div class="tut-icon">
+          <svg fill="none" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24">
+            <path d="M15.042 21.672L13.684 16.6m0 0l-2.51 2.225.569-9.47 5.227 7.917-3.286-.672zm-7.518-.267A8.25 8.25 0 1120.25 10.5M8.288 14.212A5.25 5.25 0 1117.25 10.5"/>
+          </svg>
+        </div>
+        <div class="tut-step-title">Click any chamber to explore</div>
+        <div class="tut-step-body">Click or tap the <strong>RA, LA, RV, LV</strong>, or the <strong>Aorta</strong> on the heart diagram. The panel on the right instantly shows detailed anatomy and function. Switch between <span class="tut-badge">Anatomy</span> and <span class="tut-badge">Function</span> tabs to read more.</div>
+      </div>
+
+      <!-- Step 2: Follow mode -->
+      <div class="tut-step" id="tut-step-2">
+        <div class="tut-icon">
+          <svg fill="none" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24">
+            <path d="M5.25 5.653c0-.856.917-1.398 1.667-.986l11.54 6.348a1.125 1.125 0 010 1.971l-11.54 6.347a1.125 1.125 0 01-1.667-.985V5.653z"/>
+          </svg>
+        </div>
+        <div class="tut-step-title">Follow the blood path</div>
+        <div class="tut-step-body">Press <span class="tut-badge">▶ Follow</span> to start an automatic guided tour of blood circulation — from the right atrium through the pulmonary circuit and back through the aorta. Press again to pause at any time.</div>
+      </div>
+
+      <!-- Step 3: BPM slider -->
+      <div class="tut-step" id="tut-step-3">
+        <div class="tut-icon">
+          <svg fill="none" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24">
+            <path d="M3 13.5l3-3 4 4 5-7 4 4M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+          </svg>
+        </div>
+        <div class="tut-step-title">Control heart rate &amp; presets</div>
+        <div class="tut-step-body">Drag the <strong>Cardiac Frequency</strong> slider to change BPM in real time — the animation, ECG waveform, and vital stats all respond instantly. Select a preset from the dropdown to simulate <strong>Tachycardia</strong>, <strong>Bradycardia</strong>, or <strong>Hypertension</strong>.</div>
+      </div>
+
+      <!-- Step 4: BPM badge input (NEW) -->
+      <div class="tut-step" id="tut-step-4">
+        <div class="tut-icon">
+          <svg fill="none" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24">
+            <path d="M16.862 4.487l1.687-1.688a1.875 1.875 0 112.652 2.652L10.582 16.07a4.5 4.5 0 01-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 011.13-1.897l8.932-8.931zm0 0L19.5 7.125"/>
+          </svg>
+        </div>
+        <div class="tut-step-title">Type a BPM directly on the heart</div>
+        <div class="tut-step-body">See the <span class="tut-badge">72 BPM</span> badge in the top-left of the heart diagram? Click it and type any value — it's a live input. It's an alternative to dragging the Cardiac Frequency slider below. Values outside <strong>40–180</strong> will show a warning.</div>
+      </div>
+
+      <!-- Step 5: Pathology presets -->
+      <div class="tut-step" id="tut-step-5">
+        <div class="tut-icon">
+          <svg fill="none" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24">
+            <path d="M9 12h3.75M9 15h3.75M9 18h3.75m3 .75H18a2.25 2.25 0 002.25-2.25V6.108c0-1.135-.845-2.098-1.976-2.192a48.424 48.424 0 00-1.123-.08m-5.801 0c-.065.21-.1.433-.1.664 0 .414.336.75.75.75h4.5a.75.75 0 00.75-.75 2.25 2.25 0 00-.1-.664m-5.8 0A2.251 2.251 0 0113.5 2.25H15c1.012 0 1.867.668 2.15 1.586"/>
+          </svg>
+        </div>
+        <div class="tut-step-title">Simulate cardiac conditions</div>
+        <div class="tut-step-body">The dropdown under <strong>Operating Mode</strong> lets you switch beyond Normal Sinus Rhythm. Choose <span class="tut-badge">Tachycardia</span>, <span class="tut-badge">Bradycardia</span>, or <span class="tut-badge">Hypertension</span> — each preset changes the BPM, pressure readings, and rhythm label to reflect that condition.</div>
+      </div>
+
+      <!-- Step 6: Vital stats panel -->
+      <div class="tut-step" id="tut-step-6">
+        <div class="tut-icon">
+          <svg fill="none" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24">
+            <path d="M3 13.5l3-3 4 4 5-7 4 4M3 8.25v11.25A2.25 2.25 0 005.25 21.75h13.5A2.25 2.25 0 0021 19.5V8.25m-18 0V6A2.25 2.25 0 015.25 3.75h13.5A2.25 2.25 0 0121 6v2.25m-18 0h18"/>
+          </svg>
+        </div>
+        <div class="tut-step-title">Live vital signs readout</div>
+        <div class="tut-step-body">The panel on the left shows live cardiac data — <strong>BPM</strong>, <strong>O₂ saturation</strong>, <strong>blood pressure</strong>, and <strong>rhythm</strong>. These update automatically when you click a chamber, change the BPM, or select a pathology preset. Deoxy chambers (RA, RV) show reduced O₂ values.</div>
+      </div>
+
+      <!-- Step 7: Anatomy / Function tabs -->
+      <div class="tut-step" id="tut-step-7">
+        <div class="tut-icon">
+          <svg fill="none" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24">
+            <path d="M12 6.042A8.967 8.967 0 006 3.75c-1.052 0-2.062.18-3 .512v14.25A8.987 8.987 0 016 18c2.305 0 4.408.867 6 2.292m0-14.25a8.966 8.966 0 016-2.292c1.052 0 2.062.18 3 .512v14.25A8.987 8.987 0 0018 18a8.967 8.967 0 00-6 2.292m0-14.25v14.25"/>
+          </svg>
+        </div>
+        <div class="tut-step-title">Anatomy vs. function — two views</div>
+        <div class="tut-step-body">After selecting a chamber, the panel on the right shows two tabs. <span class="tut-badge">Anatomy</span> describes the structure — wall thickness, shape, and location. <span class="tut-badge">Function</span> explains what it does in the cardiac cycle — pressure values, valve interactions, and clinical relevance.</div>
+      </div>
+
+      <!-- Step 8: Audio + theme (was step 5) -->
+      <div class="tut-step" id="tut-step-8">
+        <div class="tut-icon">
+          <svg fill="none" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24">
+            <path d="M19.114 5.636a9 9 0 010 12.728M16.463 8.288a5.25 5.25 0 010 7.424M6.75 8.25l4.72-4.72a.75.75 0 011.28.53v15.88a.75.75 0 01-1.28.53l-4.72-4.72H4.51c-.88 0-1.704-.507-1.938-1.354A9.01 9.01 0 012.25 12c0-.83.112-1.633.322-2.396C2.806 8.756 3.63 8.25 4.51 8.25H6.75z"/>
+          </svg>
+        </div>
+        <div class="tut-step-title">Audio &amp; appearance</div>
+        <div class="tut-step-body">Click <span class="tut-badge">Enable Audio</span> to hear the realistic lub-dub heartbeat — click again to mute. Toggle between <strong>light</strong> and <strong>dark</strong> mode using the button in the top-right header at any time.</div>
+      </div>
+
+    </div><!-- /tut-body -->
+    <div class="tut-footer">
+      <span class="tut-counter" id="tut-counter">Step 1 of 9</span>
+      <div class="tut-nav">
+        <button class="tut-btn" id="tut-skip" onclick="closeTutorial()">Skip</button>
+        <button class="tut-btn tut-btn-primary" id="tut-next" onclick="tutNext()">Next →</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ══ HEADER ══ -->
+<header>
+  <div class="header-inner">
+    <div class="header-left">
+      <div class="dept-label">Department of Anatomy &amp; Physiology</div>
+      <h1>Bio-Mechanical <em>Cardiac Core</em></h1>
+      <div class="header-meta">Interactive anatomical reference — v6.0</div>
+    </div>
+    <button class="theme-toggle" onclick="toggleTheme()" aria-label="Toggle light/dark mode">
+      <span class="toggle-icon" id="theme-icon">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
+          <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/>
+        </svg>
+      </span>
+      <span id="theme-label">Dark Mode</span>
+    </button>
+  </div>
+</header>
+
+<!-- ══ MAIN ══ -->
+<main class="main-content">
+
+  <!-- ── LEFT PANEL: stats + controls ── -->
+  <div class="info-panel left-panel" id="left-panel" aria-label="Vital signs and controls">
+
+    <!-- Vital stats -->
+    <div class="panel-section">
+      <div class="stat-box">
+        <div class="stat-row-item">
+          <span class="stat-key">BPM</span>
+          <span class="stat-val" id="bpm-display">72</span>
+        </div>
+        <div class="stat-row-item">
+          <span class="stat-key">O₂ SAT</span>
+          <span class="stat-val" id="o2-display">98%</span>
+        </div>
+        <div class="stat-row-item">
+          <span class="stat-key">PRESSURE</span>
+          <span class="stat-val" id="pressure-display">120/80 mmHg</span>
+        </div>
+        <div class="stat-row-item">
+          <span class="stat-key">RHYTHM</span>
+          <span class="stat-val" id="rhythm-display">SINUS</span>
+        </div>
+      </div>
     </div>
 
-    <script>
-        const heartData = {
-            'right-atrium': {
-                name: "Right Atrium",
-                desc: "Receives deoxygenated blood from the body via the vena cava. Pressure: Low."
-            },
-            'left-atrium': {
-                name: "Left Atrium",
-                desc: "Receives oxygen-rich blood from the lungs. The gateway to systemic circulation."
-            },
-            'right-ventricle': {
-                name: "Right Ventricle",
-                desc: "Pumps deoxygenated blood to the lungs through the pulmonary artery."
-            },
-            'left-ventricle': {
-                name: "Left Ventricle",
-                desc: "The strongest chamber. Pumps oxygenated blood to the entire body via the Aorta."
-            },
-            'aorta': {
-                name: "Aorta",
-                desc: "The primary mechanical conduit for oxygenated blood distribution."
-            },
-            'vena-cava': {
-                name: "Vena Cava",
-                desc: "The main intake line for deoxygenated blood returning to the core."
-            }
-        };
+    <!-- Mode + preset -->
+    <div class="panel-section" id="mode-section">
+      <div class="ctrl-label">Operating Mode</div>
+      <div class="btn-row">
+        <button class="btn active" id="btn-explore" onclick="setMode('explore')">Explore</button>
+        <button class="btn" id="btn-flow" onclick="toggleFlow()">▶ Follow</button>
+      </div>
+      <select class="preset-select" id="preset-select" onchange="applyPreset(this.value)" aria-label="Pathology preset">
+        <option value="normal">Normal Sinus Rhythm</option>
+        <option value="tachy">Tachycardia</option>
+        <option value="brady">Bradycardia</option>
+        <option value="hyper">Hypertension</option>
+      </select>
+      <div class="flow-progress" id="flow-progress" aria-live="polite">
+        <div class="flow-dot" id="dot-0"></div>
+        <div class="flow-dot" id="dot-1"></div>
+        <div class="flow-dot" id="dot-2"></div>
+        <div class="flow-dot" id="dot-3"></div>
+        <div class="flow-dot" id="dot-4"></div>
+        <div class="flow-dot" id="dot-5"></div>
+        <span class="flow-step-text" id="flow-step-label">RA → RV → Lungs → LA → LV → Aorta</span>
+      </div>
+    </div>
 
-        // Hover Logic
-        document.querySelectorAll('.anatomy-part').forEach(part => {
-            part.addEventListener('mouseenter', () => {
-                const info = heartData[part.id];
-                if (info) {
-                    document.getElementById('part-name').innerText = info.name;
-                    document.getElementById('part-desc').innerText = info.desc;
-                    document.getElementById('status').innerText = "Analyzing...";
-                }
-            });
+    <!-- ECG -->
+    <div class="panel-section">
+      <div class="ctrl-label">ECG Monitor — Cardiac Rhythm</div>
+      <canvas id="ecg-canvas" aria-label="Live ECG waveform" role="img"></canvas>
+    </div>
 
-            part.addEventListener('mouseleave', () => {
-                document.getElementById('status').innerText = "Active";
-            });
-        });
+    <!-- BPM + audio -->
+    <div class="panel-section" id="controls-section">
+      <div class="ctrl-label">Cardiac Frequency</div>
+      <div class="slider-row">
+        <span class="slider-label">40</span>
+        <input type="range" id="bpm-slider" min="40" max="180" value="72" step="1" aria-label="Beats per minute">
+        <span class="slider-label">180</span>
+        <span class="slider-val" id="bpm-label-val">72</span>
+      </div>
+      <button class="audio-btn" id="audio-btn" onclick="toggleAudio()">Enable Audio Feedback</button>
+      <label class="reduce-row">
+        <input type="checkbox" id="reduce-motion-toggle">
+        <span>Reduce Motion</span>
+      </label>
+    </div>
 
-        // Speed Logic
-        function changeHeartRate(speed) {
-            const heart = document.querySelector('.beating');
-            const bpmDisplay = document.getElementById('bpm');
-            
-            heart.style.animationDuration = `${1 / speed}s`;
-            bpmDisplay.innerText = Math.round(72 * speed);
-        }
-    </script>
+  </div>
+
+  <!-- ── STAGE (centre) ── -->
+  <div class="stage">
+    <div id="onboard-hint">Select an anatomical sector to begin scanning</div>
+    <svg id="heart-shell" viewBox="0 0 200 200" role="img" aria-label="Interactive human heart anatomy diagram">
+      <title>Human Heart — Bio-Mechanical Core</title>
+      <defs>
+        <filter id="glow-red" x="-40%" y="-40%" width="180%" height="180%">
+          <feGaussianBlur stdDeviation="3" result="blur"/>
+          <feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge>
+        </filter>
+        <filter id="glow-deoxy" x="-40%" y="-40%" width="180%" height="180%">
+          <feGaussianBlur stdDeviation="3" result="blur"/>
+          <feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge>
+        </filter>
+      </defs>
+      <!-- Circuit traces -->
+      <g pointer-events="none">
+        <path fill="none" stroke="currentColor" stroke-width=".4" stroke-dasharray="3 2" d="M100 18L100 38L130 38L130 65" opacity=".1"/>
+        <path fill="none" stroke="currentColor" stroke-width=".4" stroke-dasharray="3 2" d="M100 38L72 38L72 65" opacity=".1"/>
+        <path fill="none" stroke="currentColor" stroke-width=".4" stroke-dasharray="3 2" d="M130 130L158 130L158 170" opacity=".08"/>
+        <path fill="none" stroke="currentColor" stroke-width=".4" stroke-dasharray="3 2" d="M70 130L42 130L42 170" opacity=".08"/>
+      </g>
+      <!-- Flow guides -->
+      <g pointer-events="none" opacity=".06">
+        <path fill="none" stroke="#A51C30" stroke-width="1.2" stroke-dasharray="3 3" d="M90 175Q85 145 88 120Q88 95 90 70"/>
+        <path fill="none" stroke="#1B4F8A" stroke-width="1.2" stroke-dasharray="3 3" d="M110 175Q120 150 130 130Q138 110 138 80"/>
+      </g>
+      <!-- Main structure -->
+      <g id="main-structure">
+        <!-- RA -->
+        <g id="ra" class="chamber deoxy-side" role="button" tabindex="0" aria-label="Right atrium">
+          <path class="chamber-fill" d="M110 70 C 140 70,150 100,130 130 L 100 120 Z"/>
+          <path class="chamber-shine" d="M112 73 C 138 73,147 101,129 127 L 102 118"/>
+          <circle cx="100" cy="120" r="2.5" fill="rgba(139,70,70,.4)" stroke="currentColor" stroke-width=".6" stroke-opacity=".3"/>
+        </g>
+        <!-- LA -->
+        <g id="la" class="chamber" role="button" tabindex="0" aria-label="Left atrium">
+          <path class="chamber-fill" d="M90 70 C 60 70,50 100,70 130 L 100 120 Z"/>
+          <path class="chamber-shine" d="M88 73 C 62 73,53 101,71 127 L 98 118"/>
+          <circle cx="100" cy="120" r="2.5" fill="rgba(70,90,139,.4)" stroke="currentColor" stroke-width=".6" stroke-opacity=".3"/>
+        </g>
+        <!-- RV -->
+        <g id="rv" class="chamber deoxy-side" role="button" tabindex="0" aria-label="Right ventricle">
+          <path class="chamber-fill" d="M100 120 L 130 130 C 120 170,100 180,100 180 Z"/>
+          <path class="chamber-shine" d="M101 122 L 128 131 C 119 167,101 178,101 178"/>
+          <circle cx="130" cy="130" r="2.5" fill="rgba(139,70,70,.4)" stroke="currentColor" stroke-width=".6" stroke-opacity=".3"/>
+        </g>
+        <!-- LV -->
+        <g id="lv" class="chamber" role="button" tabindex="0" aria-label="Left ventricle">
+          <path class="chamber-fill" d="M100 120 L 70 130 C 80 170,100 180,100 180 Z"/>
+          <path class="chamber-shine" d="M99 122 L 72 131 C 81 167,99 178,99 178"/>
+          <circle cx="70" cy="130" r="2.5" fill="rgba(70,90,139,.4)" stroke="currentColor" stroke-width=".6" stroke-opacity=".3"/>
+        </g>
+        <!-- Aorta -->
+        <g id="aorta" class="chamber" role="button" tabindex="0" aria-label="Aorta">
+          <path fill="transparent" stroke="transparent" stroke-width="18" d="M90 70 C 90 30,130 20,130 50"/>
+          <path class="aorta-main" d="M90 70 C 90 30,130 20,130 50"/>
+          <path class="aorta-shine" d="M90 70 C 90 30,130 20,130 50"/>
+        </g>
+      </g>
+      <!-- Labels -->
+      <g pointer-events="none" opacity=".35">
+        <text x="132" y="92"  font-family="'JetBrains Mono',monospace" font-size="6" fill="currentColor" text-anchor="middle">RA</text>
+        <text x="68"  y="92"  font-family="'JetBrains Mono',monospace" font-size="6" fill="currentColor" text-anchor="middle">LA</text>
+        <text x="126" y="158" font-family="'JetBrains Mono',monospace" font-size="6" fill="currentColor" text-anchor="middle">RV</text>
+        <text x="74"  y="158" font-family="'JetBrains Mono',monospace" font-size="6" fill="currentColor" text-anchor="middle">LV</text>
+      </g>
+      <!-- Particles -->
+      <g id="particle-layer"></g>
+      <!-- BPM editable badge using foreignObject -->
+      <g id="bpm-badge">
+        <rect x="2" y="2" width="64" height="22" rx="2" fill="var(--surface)" stroke="var(--crimson)" stroke-width=".7" stroke-opacity=".6"/>
+        <foreignObject x="2" y="2" width="64" height="22">
+          <input xmlns="http://www.w3.org/1999/xhtml"
+            id="svg-bpm-input"
+            type="number" min="40" max="180" value="72"
+            style="width:100%;height:22px;border:none;background:transparent;font-family:'JetBrains Mono',monospace;font-size:9px;font-weight:500;color:#A51C30;text-align:center;outline:none;padding:0;margin:0;display:block;line-height:22px;cursor:text;-moz-appearance:textfield;vertical-align:middle;box-sizing:border-box;"
+            title="Type a BPM value (40–180)"
+          />
+        </foreignObject>
+      </g>
+      <!-- Flow badge -->
+      <g id="flow-badge" opacity="0" style="transition:opacity .3s">
+        <rect x="4" y="26" width="88" height="13" rx="1" fill="var(--surface)" stroke="var(--blue)" stroke-width=".5" stroke-opacity=".5"/>
+        <text id="svg-flow-label" x="48" y="34.5" font-family="'JetBrains Mono',monospace" font-size="5" fill="var(--blue)" text-anchor="middle">FOLLOW BLOOD</text>
+      </g>
+    </svg>
+  </div>
+
+  <!-- ── RIGHT PANEL: anatomy description ── -->
+  <div class="info-panel right-panel" id="info-panel" aria-label="Anatomical information panel">
+
+    <!-- Chamber name + desc -->
+    <div class="panel-section desc-box" id="desc-box">
+      <div class="chamber-name" id="chamber-title">Cardiac Core</div>
+      <div class="chamber-role" id="chamber-subtitle">select a sector to begin scanning</div>
+      <div class="desc-tabs">
+        <button class="desc-tab active" id="tab-anatomy" onclick="switchTab('anatomy')">Anatomy</button>
+        <button class="desc-tab" id="tab-function" onclick="switchTab('function')">Function</button>
+      </div>
+      <div class="desc-text" id="chamber-text">Select an anatomical sector to initialize high-fidelity bio-mechanical scanning. The heart operates as two pumps in series — pulmonary and systemic circuits.</div>
+    </div>
+
+  </div>
+</main>
+
+<!-- ══ TOAST ══ -->
+<div id="bpm-toast" role="alert" aria-live="assertive"></div>
+
+<!-- ══ FOOTER ══ -->
+<footer>
+  <span class="footer-text">Bio-Mechanical Cardiac Core — Interactive Anatomical Reference</span>
+  <span class="status-pill ok" id="footer-status">
+    <span class="status-dot ok" id="status-dot"></span>
+    <span id="status-text">NOMINAL</span>
+  </span>
+</footer>
+
+<script>
+/* ════════════════════════════════════════
+   STATE
+════════════════════════════════════════ */
+const S = {
+  bpm: 72, audioOn: false, mode: 'explore',
+  activeId: null, flowRunning: false, flowStep: 0,
+  descTab: 'anatomy', reduceMotion: false, rafId: null,
+  theme: 'light', tutStep: 0, tutTotal: 9,
+};
+let audioCtx;
+
+/* ════════════════════════════════════════
+   THEME
+════════════════════════════════════════ */
+function applyTheme(theme) {
+  S.theme = theme;
+  document.documentElement.setAttribute('data-theme', theme);
+  document.getElementById('theme-label').textContent = theme === 'light' ? 'Dark Mode' : 'Light Mode';
+  document.getElementById('theme-icon').innerHTML = theme === 'light'
+    ? `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>`
+    : `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="5"/><path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"/></svg>`;
+  const lb = document.getElementById('tut-theme-light');
+  const db = document.getElementById('tut-theme-dark');
+  if (lb && db) {
+    lb.style.borderColor = theme === 'light' ? 'var(--crimson)' : '';
+    db.style.borderColor = theme === 'dark'  ? 'var(--crimson)' : '';
+  }
+  drawECG();
+}
+function toggleTheme() { applyTheme(S.theme === 'dark' ? 'light' : 'dark'); }
+function setTutTheme(t) { applyTheme(t); }
+
+/* ════════════════════════════════════════
+   TUTORIAL
+════════════════════════════════════════ */
+const TUT_TARGETS = [
+  null,                // step 0: welcome cover, no spotlight
+  '#heart-shell',      // step 1: click chambers
+  '#btn-flow',         // step 2: follow mode
+  '#controls-section', // step 3: BPM slider + presets
+  '#bpm-badge',        // step 4: BPM badge input
+  '#preset-select',    // step 5: pathology presets dropdown
+  '#left-panel',       // step 6: vital stats readout
+  '#info-panel',       // step 7: anatomy/function tabs
+  '#audio-btn',        // step 8: audio + theme
+];
+
+function buildTutPips() {
+  const container = document.getElementById('tut-steps');
+  container.innerHTML = '';
+  for (let i = 0; i < S.tutTotal; i++) {
+    const pip = document.createElement('div');
+    pip.className = 'tut-step-pip' + (i < S.tutStep ? ' done' : '') + (i === S.tutStep ? ' active' : '');
+    container.appendChild(pip);
+  }
+}
+
+function tutShow(step) {
+  S.tutStep = step;
+  const overlay = document.getElementById('tutorial-overlay');
+  const card    = document.querySelector('.tut-card');
+  const isMini  = step > 0;
+
+  // Toggle mini mode — no blur, card at bottom-left corner
+  overlay.classList.toggle('mini-mode', isMini);
+  card.classList.toggle('mini', isMini);
+
+  // Hide all steps, show current
+  for (let i = 0; i < S.tutTotal; i++) {
+    const el = document.getElementById(`tut-step-${i}`);
+    if (el) el.className = 'tut-step' + (i === step ? ' visible' : '');
+  }
+  buildTutPips();
+  document.getElementById('tut-counter').textContent = `Step ${step + 1} of ${S.tutTotal}`;
+  document.getElementById('tut-next').textContent = step === S.tutTotal - 1 ? 'Begin →' : 'Next →';
+
+  // Spotlight — only in mini mode (steps 1–4)
+  const targetSel = TUT_TARGETS[step];
+  const spot = document.getElementById('tut-spotlight');
+  if (targetSel && isMini) {
+    const el = document.querySelector(targetSel);
+    if (el) {
+      const r = el.getBoundingClientRect();
+      const pad = 8;
+      spot.style.display = 'block';
+      spot.style.top    = (r.top    - pad) + 'px';
+      spot.style.left   = (r.left   - pad) + 'px';
+      spot.style.width  = (r.width  + pad * 2) + 'px';
+      spot.style.height = (r.height + pad * 2) + 'px';
+    }
+  } else {
+    spot.style.display = 'none';
+  }
+}
+
+function tutNext() {
+  if (S.tutStep < S.tutTotal - 1) {
+    tutShow(S.tutStep + 1);
+  } else {
+    closeTutorial();
+  }
+}
+
+function closeTutorial() {
+  const overlay = document.getElementById('tutorial-overlay');
+  overlay.classList.add('hidden');
+  document.getElementById('tut-spotlight').style.display = 'none';
+  setTimeout(() => overlay.style.display = 'none', 420);
+}
+
+/* ════════════════════════════════════════
+   ANATOMY DATA
+════════════════════════════════════════ */
+const INFO = {
+  ra: {
+    name:'Right Atrium', subtitle:'Deoxygenated inlet',
+    anatomy:'Thin-walled receiving chamber on the heart\'s right side. Collects deoxygenated blood from the body via the superior and inferior vena cava. Houses the sinoatrial (SA) node — the heart\'s natural pacemaker, firing at 60–100 bpm.',
+    function:'Fills passively during diastole. Contracts at atrial systole to push blood through the tricuspid valve into the right ventricle. Operates at very low pressure (~5 mmHg).',
+    pressureSys:30, pressureDia:5, o2:'75%', color:'deoxy',
+  },
+  rv: {
+    name:'Right Ventricle', subtitle:'Pulmonary pump',
+    anatomy:'Thin-walled, crescent-shaped chamber wrapping around the LV. Wall thickness ~3mm — one-third that of the LV — reflecting the lower resistance of the pulmonary circuit it serves.',
+    function:'Receives deoxygenated blood from the RA through the tricuspid valve. Pumps it through the pulmonary valve into the pulmonary artery toward the lungs, generating ~25 mmHg systolic pressure.',
+    pressureSys:25, pressureDia:5, o2:'75%', color:'deoxy',
+  },
+  la: {
+    name:'Left Atrium', subtitle:'Oxygenated inlet',
+    anatomy:'Posterior chamber receiving freshly oxygenated blood from the four pulmonary veins. Acts as a compliance reservoir, smoothing pressure fluctuations from the lungs before delivery to the LV.',
+    function:'Empties through the mitral valve during LV diastole. Provides the "atrial kick" — roughly 20% of total LV filling. Operates at 8–12 mmHg.',
+    pressureSys:12, pressureDia:8, o2:'98%', color:'oxy',
+  },
+  lv: {
+    name:'Left Ventricle', subtitle:'Primary systemic engine',
+    anatomy:'The heart\'s dominant chamber with walls 9–12mm thick — three times that of the RV. Its ellipsoidal geometry maximises mechanical efficiency. Consumes ~70% of total cardiac oxygen delivery.',
+    function:'Generates 80–120 mmHg systolic pressure to drive blood through the aortic valve into the aorta and the entire systemic circulation. Pulse pressure equals systolic minus diastolic.',
+    pressureSys:120, pressureDia:80, o2:'98%', color:'oxy',
+  },
+  aorta: {
+    name:'Aorta', subtitle:'Main distribution manifold',
+    anatomy:'The body\'s largest artery, approximately 2.5cm in diameter. Comprises the ascending aorta, aortic arch (branching to head and arms), and descending aorta supplying the trunk and legs.',
+    function:'Receives oxygenated blood ejected by the LV. Its elastic walls stretch during systole (the Windkessel effect) and recoil during diastole, maintaining continuous forward flow between heartbeats.',
+    pressureSys:120, pressureDia:80, o2:'98%', color:'oxy',
+  },
+};
+
+const FLOW_ORDER  = ['ra','rv','lungs','la','lv','aorta'];
+const FLOW_LABELS = {
+  ra:'RA — body blood arrives', rv:'RV — pumps to lungs',
+  lungs:'Pulmonary — gas exchange', la:'LA — oxygenated blood arrives',
+  lv:'LV — pumps to body', aorta:'Aorta — systemic distribution',
+};
+const PRESETS = {
+  normal:{ bpm:72,  pSys:120, pDia:80,  o2:'98%', rhythm:'SINUS',    warn:false },
+  tachy: { bpm:130, pSys:130, pDia:85,  o2:'96%', rhythm:'TACHY',    warn:true  },
+  brady: { bpm:42,  pSys:100, pDia:65,  o2:'97%', rhythm:'BRADY',    warn:true  },
+  hyper: { bpm:88,  pSys:165, pDia:102, o2:'97%', rhythm:'HYPERTNS', warn:true  },
+};
+const FACTS = [
+  'The heart beats approximately 100,000 times per day — over 2.5 billion in a lifetime.',
+  'The left ventricular wall is roughly three times thicker than the right, reflecting systemic versus pulmonary pressure.',
+  'A resting heart generates enough pressure to project blood approximately nine metres horizontally.',
+  'The aorta stores kinetic energy during systole and releases it during diastole — the Windkessel effect.',
+  'The sinoatrial node fires intrinsically at 60–100 bpm even without any nervous system input.',
+  'Cardiac muscle contains roughly four times more mitochondria than skeletal muscle and cannot fatigue.',
+  'The heart consumes approximately 70% of the oxygen delivered to it — more than any other organ.',
+];
+const PATHS = {
+  oxy:   [{x:100,y:178},{x:97,y:160},{x:90,y:140},{x:88,y:120},{x:88,y:95},{x:89,y:75},{x:90,y:55},{x:110,y:38},{x:130,y:45}],
+  deoxy: [{x:100,y:178},{x:110,y:165},{x:122,y:150},{x:130,y:130},{x:138,y:112},{x:140,y:90},{x:138,y:72}],
+};
+
+/* ════════════════════════════════════════
+   RAF ENGINE
+════════════════════════════════════════ */
+let startTime=null, lastPhase=1;
+
+function tick(ts) {
+  if (!startTime) startTime=ts;
+  const bd=60000/S.bpm, phase=((ts-startTime)%bd)/bd;
+  if (!S.reduceMotion) {
+    const aS=phase<0.12?1+0.038*Math.sin((phase/0.12)*Math.PI):1;
+    const vS=phase>=0.15&&phase<0.30?1+0.055*Math.sin(((phase-0.15)/0.15)*Math.PI):1;
+    const map={ra:'130px 95px',la:'70px 95px',rv:'115px 152px',lv:'85px 152px'};
+    Object.entries(map).forEach(([id,o])=>{
+      const el=document.getElementById(id);
+      if(!el)return;
+      el.style.transformOrigin=o;
+      el.style.transform=`scale(${id==='ra'||id==='la'?aS:vS})`;
+    });
+    const g=Math.max(aS,vS)-1;
+    document.getElementById('heart-shell').style.filter=
+      `drop-shadow(0 8px ${28+g*300}px rgba(165,28,48,${0.08+g*3}))`;
+  }
+  if (lastPhase>0.05&&phase<=0.05) onLub();
+  if (lastPhase<0.15&&phase>=0.15) onDub();
+  lastPhase=phase;
+  S.rafId=requestAnimationFrame(tick);
+}
+function startEngine(){
+  if(S.rafId)cancelAnimationFrame(S.rafId);
+  startTime=null; S.rafId=requestAnimationFrame(tick);
+}
+function onLub(){ playSound('lub'); spawnParticles('deoxy'); }
+function onDub(){ playSound('dub'); spawnParticles('oxy'); }
+
+/* ════════════════════════════════════════
+   ECG — continuous rAF-driven, synced to live BPM
+════════════════════════════════════════ */
+const ECG_W=280, ECG_H=52, ECG_DURATION=6000; // 6 seconds of history shown
+let ecgCanvas, ecgCtx;
+let ecgRafId=null;
+let ecgStartTime=null;
+
+function ecgWaveY(phase) {
+  // phase 0..1 = one full heartbeat
+  const h=ECG_H*0.5;
+  if (phase<0.10) return h - 3*Math.sin((phase/0.10)*Math.PI);         // P wave
+  if (phase<0.18) return h;                                              // iso
+  if (phase<0.21) return h + 4*Math.sin(((phase-0.18)/0.03)*Math.PI);  // Q
+  if (phase<0.27) return h - 20*Math.sin(((phase-0.21)/0.06)*Math.PI); // R
+  if (phase<0.31) return h + 5*Math.sin(((phase-0.27)/0.04)*Math.PI);  // S
+  if (phase<0.40) return h;                                              // iso
+  if (phase<0.62) return h - 7*Math.sin(((phase-0.40)/0.22)*Math.PI);  // T wave
+  return h;
+}
+
+function ecgTick(ts) {
+  if (!ecgStartTime) ecgStartTime=ts;
+  if (!ecgCtx) { ecgRafId=requestAnimationFrame(ecgTick); return; }
+  const elapsed=ts-ecgStartTime;
+  const beatDur=60000/S.bpm;
+  const pts=ECG_W;
+
+  ecgCtx.clearRect(0,0,ECG_W,ECG_H);
+
+  const isDark=S.theme==='dark';
+  ecgCtx.strokeStyle=isDark?'#38B2E8':'#1B4F8A';
+  ecgCtx.lineWidth=1.4;
+  ecgCtx.shadowColor=isDark?'#38B2E8':'transparent';
+  ecgCtx.shadowBlur=isDark?3:0;
+  ecgCtx.beginPath();
+
+  for (let i=0;i<pts;i++) {
+    // Each pixel represents ECG_DURATION/pts ms into the past from "now"
+    const tOffset=(i/pts)*ECG_DURATION; // 0 = oldest, ECG_DURATION = newest
+    const tAbs=(elapsed-ECG_DURATION)+tOffset;
+    if (tAbs<0){ if(i===0)ecgCtx.moveTo(i,ECG_H*0.5); else ecgCtx.lineTo(i,ECG_H*0.5); continue; }
+    const phase=(tAbs%beatDur)/beatDur;
+    const y=ecgWaveY(phase);
+    if(i===0) ecgCtx.moveTo(i,y); else ecgCtx.lineTo(i,y);
+  }
+  ecgCtx.stroke();
+
+  // Scan-line cursor (rightmost = "now")
+  ecgCtx.strokeStyle=isDark?'rgba(56,178,232,0.3)':'rgba(27,79,138,0.2)';
+  ecgCtx.lineWidth=1;
+  ecgCtx.shadowBlur=0;
+  ecgCtx.beginPath();
+  ecgCtx.moveTo(ECG_W-1,0);ecgCtx.lineTo(ECG_W-1,ECG_H);
+  ecgCtx.stroke();
+
+  ecgRafId=requestAnimationFrame(ecgTick);
+}
+
+function initECG(){
+  ecgCanvas=document.getElementById('ecg-canvas');
+  ecgCanvas.width=ECG_W; ecgCanvas.height=ECG_H;
+  ecgCtx=ecgCanvas.getContext('2d');
+  ecgStartTime=null;
+  if(ecgRafId)cancelAnimationFrame(ecgRafId);
+  ecgRafId=requestAnimationFrame(ecgTick);
+}
+// Expose for theme change redraw
+function drawECG(){ /* handled by continuous loop */ }
+
+/* ════════════════════════════════════════
+   AUDIO — proper toggle on/off
+════════════════════════════════════════ */
+function toggleAudio() {
+  if (!S.audioOn) {
+    // Enable
+    if (!audioCtx) audioCtx=new (window.AudioContext||window.webkitAudioContext)();
+    if (audioCtx.state==='suspended') audioCtx.resume();
+    S.audioOn=true;
+    const btn=document.getElementById('audio-btn');
+    btn.textContent='Disable Audio Feedback';
+    btn.classList.add('on');
+  } else {
+    // Disable
+    S.audioOn=false;
+    if (audioCtx) audioCtx.suspend();
+    const btn=document.getElementById('audio-btn');
+    btn.textContent='Enable Audio Feedback';
+    btn.classList.remove('on');
+  }
+}
+
+function playSound(type) {
+  if (!S.audioOn||!audioCtx||audioCtx.state==='suspended') return;
+  const t=audioCtx.currentTime;
+  const osc=audioCtx.createOscillator(), gain=audioCtx.createGain();
+  osc.type='sine';
+  osc.frequency.setValueAtTime(type==='lub'?85:100,t);
+  osc.frequency.linearRampToValueAtTime(type==='lub'?40:55,t+0.08);
+  gain.gain.setValueAtTime(type==='lub'?0.42:0.26,t);
+  gain.gain.linearRampToValueAtTime(0,t+0.14);
+  osc.connect(gain); gain.connect(audioCtx.destination);
+  osc.start(t); osc.stop(t+0.16);
+  if (type==='lub') {
+    const buf=audioCtx.createBuffer(1,audioCtx.sampleRate*0.1,audioCtx.sampleRate);
+    const d=buf.getChannelData(0);
+    for(let i=0;i<d.length;i++) d[i]=(Math.random()*2-1)*0.1;
+    const src=audioCtx.createBufferSource(),f=audioCtx.createBiquadFilter(),ng=audioCtx.createGain();
+    f.type='bandpass';f.frequency.value=200;f.Q.value=1;
+    ng.gain.setValueAtTime(0.22,t);ng.gain.linearRampToValueAtTime(0,t+0.1);
+    src.buffer=buf;src.connect(f);f.connect(ng);ng.connect(audioCtx.destination);src.start(t);
+  }
+}
+
+/* ════════════════════════════════════════
+   PARTICLES
+════════════════════════════════════════ */
+function spawnParticles(type) {
+  if(S.reduceMotion)return;
+  const n=Math.max(1,Math.round(S.bpm/45));
+  for(let i=0;i<n;i++) setTimeout(()=>spawnOne(type),i*75);
+}
+function spawnOne(type) {
+  const layer=document.getElementById('particle-layer');
+  const ns='http://www.w3.org/2000/svg';
+  const p=document.createElementNS(ns,'circle');
+  p.setAttribute('r',type==='oxy'?'2.2':'1.7');
+  const isDark=S.theme==='dark';
+  p.setAttribute('fill',type==='oxy'?(isDark?'#FF3655':'#A51C30'):(isDark?'#38B2E8':'#1B4F8A'));
+  p.setAttribute('opacity','0.85');
+  layer.appendChild(p);
+  const path=PATHS[type], dur=1800-(S.bpm-40)*5.5, s0=performance.now();
+  (function anim(ts){
+    const prog=Math.min((ts-s0)/dur,1);
+    const fi=prog*(path.length-1),lo=Math.floor(fi),hi=Math.min(lo+1,path.length-1),t=fi-lo;
+    p.setAttribute('cx',path[lo].x+(path[hi].x-path[lo].x)*t);
+    p.setAttribute('cy',path[lo].y+(path[hi].y-path[lo].y)*t);
+    p.setAttribute('opacity',(prog>0.78?1-(prog-0.78)/0.22:1)*0.85);
+    if(prog<1)requestAnimationFrame(anim); else p.remove();
+  })(s0);
+}
+
+/* ════════════════════════════════════════
+   CHAMBER INTERACTION
+════════════════════════════════════════ */
+function activateChamber(id,fromFlow) {
+  document.querySelectorAll('.chamber').forEach(c=>c.classList.remove('active'));
+  const el=document.getElementById(id);
+  if(el)el.classList.add('active');
+  S.activeId=id;
+  const info=INFO[id]; if(!info)return;
+  const preset=PRESETS[document.getElementById('preset-select').value]||PRESETS.normal;
+  const pSys=(id==='lv'||id==='aorta')?preset.pSys:(id==='la'?12:25);
+  const pDia=(id==='lv'||id==='aorta')?preset.pDia:(id==='la'?8:5);
+  document.getElementById('pressure-display').textContent=`${pSys}/${pDia} mmHg`;
+  document.getElementById('pressure-display').className='stat-val'+(info.color==='deoxy'?' warn':'');
+  document.getElementById('o2-display').textContent=info.o2;
+  document.getElementById('o2-display').className='stat-val'+(info.color==='deoxy'?' warn':'');
+  if(!fromFlow){
+    const box=document.getElementById('desc-box');
+    box.classList.remove('flash');void box.offsetWidth;box.classList.add('flash');
+  }
+  document.getElementById('chamber-title').textContent=info.name;
+  document.getElementById('chamber-subtitle').textContent=info.subtitle;
+  refreshDesc();
+}
+function refreshDesc(){
+  if(!S.activeId)return;
+  const info=INFO[S.activeId];if(!info)return;
+  document.getElementById('chamber-text').textContent=
+    S.descTab==='anatomy'?info.anatomy:info.function;
+}
+function switchTab(tab){
+  S.descTab=tab;
+  document.getElementById('tab-anatomy').classList.toggle('active',tab==='anatomy');
+  document.getElementById('tab-function').classList.toggle('active',tab==='function');
+  refreshDesc();
+}
+
+/* ════════════════════════════════════════
+   MODES
+════════════════════════════════════════ */
+function setMode(m){
+  stopFlow(); S.mode=m;
+  document.getElementById('btn-explore').classList.toggle('active',m==='explore');
+}
+let flowTimer;
+function toggleFlow(){ S.flowRunning?stopFlow():startFlow(); }
+function startFlow(){
+  S.flowRunning=true;S.flowStep=0;S.mode='flow';
+  document.getElementById('btn-flow').textContent='■ Pause';
+  document.getElementById('btn-flow').classList.add('flow-active');
+  document.getElementById('flow-progress').classList.add('visible');
+  document.getElementById('flow-badge').style.opacity='1';
+  advanceFlow();
+}
+function advanceFlow(){
+  if(!S.flowRunning)return;
+  const id=FLOW_ORDER[S.flowStep];
+  document.getElementById('svg-flow-label').textContent=FLOW_LABELS[id]||'';
+  FLOW_ORDER.forEach((_,i)=>{
+    const d=document.getElementById(`dot-${i}`);if(!d)return;
+    d.className='flow-dot'+(i<S.flowStep?' done':'')+(i===S.flowStep?' current':'');
+  });
+  document.getElementById('flow-step-label').textContent=FLOW_LABELS[id];
+  if(id==='lungs'){
+    document.querySelectorAll('.chamber').forEach(c=>c.classList.remove('active'));
+    document.getElementById('chamber-title').textContent='Pulmonary Circuit';
+    document.getElementById('chamber-subtitle').textContent='gas exchange';
+    document.getElementById('chamber-text').textContent=
+      'Deoxygenated blood travels from the right ventricle through the pulmonary artery into the lungs, where CO₂ is exchanged for O₂. The freshly oxygenated blood returns via the pulmonary veins to the left atrium.';
+    document.getElementById('o2-display').textContent='↑ 75→98%';
+    spawnParticles('deoxy');setTimeout(()=>spawnParticles('oxy'),700);
+  } else {
+    activateChamber(id,true);
+    spawnParticles(INFO[id]?.color==='oxy'?'oxy':'deoxy');
+  }
+  S.flowStep=(S.flowStep+1)%FLOW_ORDER.length;
+  flowTimer=setTimeout(advanceFlow,Math.max(1800,(60000/S.bpm)*2.5));
+}
+function stopFlow(){
+  S.flowRunning=false;S.mode='explore';clearTimeout(flowTimer);
+  document.getElementById('btn-flow').textContent='▶ Follow';
+  document.getElementById('btn-flow').classList.remove('flow-active');
+  document.getElementById('flow-progress').classList.remove('visible');
+  document.getElementById('flow-badge').style.opacity='0';
+  document.getElementById('btn-explore').classList.add('active');
+}
+
+/* ════════════════════════════════════════
+   PRESETS
+════════════════════════════════════════ */
+function applyPreset(key){
+  const p=PRESETS[key]||PRESETS.normal;
+  syncBpmUI(p.bpm);
+  document.getElementById('pressure-display').textContent=`${p.pSys}/${p.pDia} mmHg`;
+  document.getElementById('pressure-display').className=p.warn?'stat-val warn':'stat-val';
+  document.getElementById('rhythm-display').textContent=p.rhythm;
+  document.getElementById('rhythm-display').className=p.warn?'stat-val warn':'stat-val';
+  const fp=document.getElementById('footer-status');
+  const dot=document.getElementById('status-dot');
+  fp.className='status-pill '+(p.warn?'alert':'ok');
+  dot.className='status-dot '+(p.warn?'alert':'ok');
+  document.getElementById('status-text').textContent=p.warn?'ALERT':'NOMINAL';
+  startEngine();
+}
+
+/* ════════════════════════════════════════
+   BPM SYNC HELPER
+════════════════════════════════════════ */
+function syncBpmUI(val) {
+  S.bpm = val;
+  document.getElementById('bpm-display').textContent = val;
+  document.getElementById('bpm-label-val').textContent = val;
+  document.getElementById('bpm-slider').value = val;
+  const inp = document.getElementById('svg-bpm-input');
+  if (inp) inp.value = val;
+  const r = val>100?'TACHY':val<60?'BRADY':'SINUS', warn = r!=='SINUS';
+  document.getElementById('rhythm-display').textContent = r;
+  document.getElementById('rhythm-display').className = warn ? 'stat-val warn' : 'stat-val';
+}
+
+/* ════════════════════════════════════════
+   BPM SLIDER
+════════════════════════════════════════ */
+document.getElementById('bpm-slider').addEventListener('input', e => {
+  syncBpmUI(+e.target.value);
+  startEngine();
+});
+
+/* ════════════════════════════════════════
+   BPM SVG INPUT (editable badge, 40–180)
+════════════════════════════════════════ */
+let toastTimer;
+function showToast(msg) {
+  const t = document.getElementById('bpm-toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => t.classList.remove('show'), 3000);
+}
+
+const bpmInput = document.getElementById('svg-bpm-input');
+if (bpmInput) {
+  bpmInput.addEventListener('change', e => {
+    const raw = parseInt(e.target.value, 10);
+    if (isNaN(raw) || raw < 40 || raw > 180) {
+      showToast('⚠ BPM must be between 40 and 180');
+      e.target.value = S.bpm;
+      return;
+    }
+    syncBpmUI(raw);
+    startEngine();
+  });
+  bpmInput.addEventListener('keydown', e => {
+    if (e.key === 'Enter') { e.preventDefault(); bpmInput.blur(); }
+  });
+}
+
+/* ════════════════════════════════════════
+   CHAMBER EVENTS
+════════════════════════════════════════ */
+document.querySelectorAll('.chamber').forEach(el=>{
+  el.addEventListener('click',()=>{ if(S.mode!=='flow') activateChamber(el.id); });
+  el.addEventListener('keydown',e=>{
+    if(e.key==='Enter'||e.key===' '){ e.preventDefault(); if(S.mode!=='flow') activateChamber(el.id); }
+  });
+  el.addEventListener('touchstart',()=>{},{passive:true});
+});
+
+/* ════════════════════════════════════════
+   REDUCE MOTION
+════════════════════════════════════════ */
+document.getElementById('reduce-motion-toggle').addEventListener('change',e=>{
+  S.reduceMotion=e.target.checked;
+  if(S.reduceMotion){
+    ['ra','rv','la','lv'].forEach(id=>{const el=document.getElementById(id);if(el)el.style.transform='scale(1)';});
+    document.getElementById('heart-shell').style.filter='drop-shadow(0 8px 32px var(--glow))';
+  }
+});
+if(window.matchMedia('(prefers-reduced-motion: reduce)').matches){
+  S.reduceMotion=true;document.getElementById('reduce-motion-toggle').checked=true;
+}
+
+/* ════════════════════════════════════════
+   ONBOARD HINT
+════════════════════════════════════════ */
+setTimeout(()=>document.getElementById('onboard-hint').classList.add('fade'),4500);
+
+/* ════════════════════════════════════════
+   INIT
+════════════════════════════════════════ */
+tutShow(0);       // always show tutorial on load
+// Highlight the correct theme button on load (light is default)
+const _lb = document.getElementById('tut-theme-light');
+if (_lb) _lb.style.borderColor = 'var(--crimson)';
+initECG();        // start continuous ECG rAF loop
+startEngine();    // start heart beat rAF loop
+</script>
 </body>
 </html>
